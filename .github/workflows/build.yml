@@ -1,0 +1,48 @@
+name: Build
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Test and build
+        run: mvn -B test package
+
+      - name: Verify release jar
+        shell: bash
+        run: |
+          set -euo pipefail
+          JAR="$(find target -maxdepth 1 -type f -name 'Job-*-Spigot-1.21.1.jar' | head -n 1)"
+          test -n "$JAR"
+          unzip -t "$JAR"
+          unzip -p "$JAR" plugin.yml | grep -q '^version: 2.0.1$'
+          if unzip -p "$JAR" plugin.yml | grep -q '^[[:space:]]*usage:'; then
+            echo 'plugin.yml still contains a fixed usage hint'
+            exit 1
+          fi
+          unzip -p "$JAR" plugin.yml | grep -q '^  jobmenu:$'
+          if unzip -l "$JAR" | grep -Eq ' org/bukkit/| org/junit/'; then
+            echo 'Provided/test dependencies were packaged into the plugin jar'
+            exit 1
+          fi
+          javap -verbose -classpath "$JAR" com.sagakenichi.job.JobPlugin | grep -q 'major version: 65'
+          echo "Verified $JAR"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Job-Spigot-1.21.1
+          path: target/Job-*-Spigot-1.21.1.jar
+          if-no-files-found: error

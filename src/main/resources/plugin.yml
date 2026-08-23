@@ -1,5 +1,5 @@
 name: Job
-version: 2.0.0
+version: 2.0.1
 main: com.sagakenichi.job.JobPlugin
 api-version: '1.21'
 author: SagaK-dev
@@ -7,7 +7,9 @@ description: Job rewards, categorized item-selling GUI, and built-in yen currenc
 commands:
   job:
     description: Open the Job sell GUI or inspect/configure Job economy.
-    usage: /job [shop|balance|rates|status|rate|setrate|reload]
+  jobmenu:
+    aliases: [jmenu]
+    description: Dedicated Job GUI command for servers where /job conflicts with another plugin.
 permissions:
   job.use:
     description: Allows the Job GUI, balance, rates and status commands.
