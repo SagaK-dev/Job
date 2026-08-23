@@ -1,9 +1,9 @@
 name: Job
-version: 1.1.0
+version: 1.2.0
 main: com.sagakenichi.job.JobPlugin
 api-version: '1.21'
 author: SagaK-dev
-description: Configurable work rewards with a beginner multiplier for Spigot 1.21.1.
+description: Configurable work rewards with a 24-hour cumulative-playtime beginner multiplier for Spigot 1.21.1.
 softdepend: [Vault]
 commands:
   job:
