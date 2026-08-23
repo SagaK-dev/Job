@@ -6,6 +6,9 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class JobPlugin extends JavaPlugin {
+
+    private static final long DEFAULT_BEGINNER_PLAYTIME_HOURS = 24L;
+
     private Economy economy;
     private BeginnerService beginners;
     private RateTable rateTable;
@@ -16,13 +19,16 @@ public final class JobPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        migrateBeginnerConfig();
+
         if (!setupEconomy()) {
             getLogger().severe("Vault and a Vault-compatible economy provider are required. Disabling Job.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+
         beginners = new BeginnerService(
-                getConfig().getLong("beginner.duration-hours", 72L),
+                getConfig().getLong("beginner.playtime-hours", DEFAULT_BEGINNER_PLAYTIME_HOURS),
                 getConfig().getInt("beginner.multiplier", 3));
         rateTable = new RateTable(this);
         rewards = new RewardService(this, economy, beginners, rateTable,
@@ -32,20 +38,27 @@ public final class JobPlugin extends JavaPlugin {
         RewardCatalog catalog = new RewardCatalog();
         listener = new JobListener(catalog, rewards, placedBlocks, beginners,
                 getConfig().getBoolean("messages.beginner-join", true));
+
         getServer().getPluginManager().registerEvents(listener, this);
+
         PluginCommand command = getCommand("job");
-        if (command == null) throw new IllegalStateException("Command 'job' is missing from plugin.yml");
+        if (command == null) {
+            throw new IllegalStateException("Command 'job' is missing from plugin.yml");
+        }
         JobCommand executor = new JobCommand(this, beginners, rewards, rateTable);
         command.setExecutor(executor);
         command.setTabCompleter(executor);
-        getLogger().info("Job 1.1.0 enabled. Beginner rewards are multiplied by "
-                + beginners.beginnerMultiplier() + " for the first " + beginners.durationHours()
-                + " hours. Rates are configurable with /job rate set.");
+
+        getLogger().info("Job 1.2.0 enabled. Beginner rewards are multiplied by "
+                + beginners.beginnerMultiplier() + " until cumulative play time reaches "
+                + beginners.playtimeHours() + " hours. Rates are configurable with /job rate set.");
     }
 
     void reloadRuntimeConfig() {
         reloadConfig();
-        beginners.reload(getConfig().getLong("beginner.duration-hours", 72L),
+        migrateBeginnerConfig();
+        beginners.reload(
+                getConfig().getLong("beginner.playtime-hours", DEFAULT_BEGINNER_PLAYTIME_HOURS),
                 getConfig().getInt("beginner.multiplier", 3));
         rateTable.reload();
         rewards.setPayoutMessages(getConfig().getBoolean("messages.payout", true));
@@ -53,11 +66,30 @@ public final class JobPlugin extends JavaPlugin {
         listener.setBeginnerJoinMessage(getConfig().getBoolean("messages.beginner-join", true));
     }
 
+    private void migrateBeginnerConfig() {
+        boolean changed = false;
+        if (!getConfig().contains("beginner.playtime-hours")) {
+            getConfig().set("beginner.playtime-hours", DEFAULT_BEGINNER_PLAYTIME_HOURS);
+            changed = true;
+        }
+        if (getConfig().contains("beginner.duration-hours")) {
+            getConfig().set("beginner.duration-hours", null);
+            changed = true;
+        }
+        if (changed) {
+            saveConfig();
+        }
+    }
+
     private boolean setupEconomy() {
-        if (getServer().getPluginManager().getPlugin("Vault") == null) return false;
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
         RegisteredServiceProvider<Economy> registration =
                 getServer().getServicesManager().getRegistration(Economy.class);
-        if (registration == null) return false;
+        if (registration == null) {
+            return false;
+        }
         economy = registration.getProvider();
         return economy != null;
     }
