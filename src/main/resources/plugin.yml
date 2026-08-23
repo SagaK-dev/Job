@@ -1,0 +1,18 @@
+name: Job
+version: 1.0.0
+main: com.sagakenichi.job.JobPlugin
+api-version: '1.21'
+author: SagaK-dev
+description: Work rewards with a 3x beginner multiplier for the first 72 hours.
+softdepend: [Vault]
+commands:
+  job:
+    description: Show job rates and beginner status.
+    usage: /job <rates|status|reload>
+permissions:
+  job.use:
+    description: Allows use of /job rates and /job status.
+    default: true
+  job.admin:
+    description: Allows reloading Job configuration.
+    default: op
