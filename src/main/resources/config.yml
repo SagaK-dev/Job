@@ -2,6 +2,34 @@ beginner:
   duration-hours: 72
   multiplier: 3
 
+# Each category pays `yen` every `unit-count` successful work actions.
+# These values can also be changed live with /job rate set.
+rates:
+  miner-stone:
+    unit-count: 16
+    yen: 1
+  miner-low-ore:
+    unit-count: 1
+    yen: 2
+  miner-mid-ore:
+    unit-count: 1
+    yen: 4
+  miner-high-ore:
+    unit-count: 1
+    yen: 12
+  lumberjack:
+    unit-count: 8
+    yen: 1
+  farmer:
+    unit-count: 8
+    yen: 1
+  land-clearer:
+    unit-count: 16
+    yen: 1
+  weeder:
+    unit-count: 128
+    yen: 1
+
 anti-abuse:
   ignore-player-placed-blocks: true
 

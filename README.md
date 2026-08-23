@@ -1,35 +1,57 @@
 # Job
 
-Spigot 1.21.1 economy reward plugin using Vault.
+Spigot 1.21.1 / Java 21 job-reward plugin using Vault economy.
 
 ## Requirements
 
-- Java 21
 - Spigot 1.21.1
+- Java 21
 - Vault
 - A Vault-compatible economy plugin
 
-## Rates
+## Beginner bonus
 
-| Work | Target | Rate |
-|---|---|---:|
-| Miner | stone / cobblestone / deepslate and common stone variants | 16 blocks = ¥1 |
-| Miner | coal / copper / iron ore, including deepslate variants | 1 block = ¥2 |
-| Miner | gold / redstone / lapis ore, including deepslate variants | 1 block = ¥4 |
-| Miner | diamond / emerald ore, including deepslate variants | 1 block = ¥12 |
-| Lumberjack | logs / wood / stems / hyphae, including stripped variants | 8 blocks = ¥1 |
-| Farmer | mature crops | 8 harvests = ¥1 |
-| Land clearer | dirt / sand / gravel / clay and common terrain variants | 16 blocks = ¥1 |
-| Weeder | short grass / fern / large fern / tall grass / dead bush | 128 blocks = ¥1 |
+For the first 72 hours after a player's first login, payouts are multiplied by 3 by default.
+Both the duration and multiplier are configurable in `config.yml`.
 
-Players within 72 hours of their first login receive **3x the completed-unit payout**. For example, 16 stone pays ¥3 to a beginner, rather than changing the 16-block unit size.
+## Default rates
 
-## Anti-abuse
-
-Player-placed blocks are marked in the owning chunk's PersistentDataContainer. Breaking those marked blocks does not pay mining, lumberjack, land-clearing, or weeding rewards. Mature planted crops are still eligible because farming is expected to involve planting. Manually placed melons/pumpkins are excluded.
+| Key | Work | Default rate |
+| --- | --- | --- |
+| `miner-stone` | stone / cobblestone / deepslate and similar | 16 blocks = 1 yen |
+| `miner-low-ore` | coal / copper / iron ores, including deepslate variants | 1 block = 2 yen |
+| `miner-mid-ore` | gold / redstone / lapis ores, including deepslate variants | 1 block = 4 yen |
+| `miner-high-ore` | diamond / emerald ores, including deepslate variants | 1 block = 12 yen |
+| `lumberjack` | logs / wood / stems / hyphae | 8 blocks = 1 yen |
+| `farmer` | mature crop harvests | 8 harvests = 1 yen |
+| `land-clearer` | dirt / sand / gravel / clay and similar | 16 blocks = 1 yen |
+| `weeder` | short grass / fern / tall grass / dead bush | 128 blocks = 1 yen |
 
 ## Commands
 
-- `/job rates`
-- `/job status`
-- `/job reload` (OP / `job.admin`)
+- `/job rates` - show the live rate table.
+- `/job status` - show beginner bonus status and saved work progress.
+- `/job rate list` - show the live rate table (admin).
+- `/job rate get <key>` - show one rate.
+- `/job rate set <key> <yen>` - change only payout amount.
+- `/job rate set <key> <unit-count> <yen>` - change count and payout.
+- `/job setrate <key> <yen>` - shorthand.
+- `/job setrate <key> <unit-count> <yen>` - shorthand.
+- `/job reload` - reload config and rates.
+
+Rate changes are saved immediately to `config.yml` and survive restarts.
+
+## Anti-abuse behavior
+
+- CREATIVE and SPECTATOR do not earn rewards.
+- Player-placed reward blocks do not pay when broken.
+- Player-placed markers survive restarts in chunk PDC.
+- Markers follow piston-moved and falling blocks such as sand/gravel.
+- Explosions clear placement markers for destroyed blocks.
+- Only rewardable placed block types are tracked to keep chunk metadata small.
+
+## Farming details
+
+- Ageable crops only pay when mature.
+- Melons, pumpkins, torchflowers and pitcher plants pay when harvested and are excluded when manually placed.
+- Mature sweet berry bushes count when harvested by right-click; bone meal use is excluded.

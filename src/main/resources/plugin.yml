@@ -1,18 +1,18 @@
 name: Job
-version: 1.0.0
+version: 1.1.0
 main: com.sagakenichi.job.JobPlugin
 api-version: '1.21'
 author: SagaK-dev
-description: Work rewards with a 3x beginner multiplier for the first 72 hours.
+description: Configurable work rewards with a beginner multiplier for Spigot 1.21.1.
 softdepend: [Vault]
 commands:
   job:
-    description: Show job rates and beginner status.
-    usage: /job <rates|status|reload>
+    description: Show and configure job rates and beginner status.
+    usage: /job <rates|status|rate|setrate|reload>
 permissions:
   job.use:
     description: Allows use of /job rates and /job status.
     default: true
   job.admin:
-    description: Allows reloading Job configuration.
+    description: Allows changing rates and reloading Job configuration.
     default: op
