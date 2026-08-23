@@ -1,0 +1,10 @@
+beginner:
+  duration-hours: 72
+  multiplier: 3
+
+anti-abuse:
+  ignore-player-placed-blocks: true
+
+messages:
+  payout: true
+  beginner-join: true
