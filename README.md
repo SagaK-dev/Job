@@ -11,8 +11,10 @@ Spigot 1.21.1 / Java 21 job-reward plugin using Vault economy.
 
 ## Beginner bonus
 
-For the first 72 hours after a player's first login, payouts are multiplied by 3 by default.
-Both the duration and multiplier are configurable in `config.yml`.
+Players whose **cumulative server play time is under 24 hours** receive 3x payouts by default.
+The timer advances only while the player is actually logged in; calendar time while offline does not consume the beginner period.
+Spigot's `Statistic.PLAY_ONE_MINUTE` is used as the play-time source; despite its historical name it stores played ticks.
+The play-time threshold and multiplier are configurable in `config.yml`.
 
 ## Default rates
 
@@ -33,11 +35,11 @@ Both the duration and multiplier are configurable in `config.yml`.
 - `/job status` - show beginner bonus status and saved work progress.
 - `/job rate list` - show the live rate table (admin).
 - `/job rate get <key>` - show one rate.
-- `/job rate set <key> <yen>` - change only payout amount.
-- `/job rate set <key> <unit-count> <yen>` - change count and payout.
-- `/job setrate <key> <yen>` - shorthand.
-- `/job setrate <key> <unit-count> <yen>` - shorthand.
-- `/job reload` - reload config and rates.
+- `/job rate set <key> <yen>` - change only the payout amount and keep the current unit count.
+- `/job rate set <key> <unit-count> <yen>` - change both the required count and payout.
+- `/job setrate <key> <yen>` - shorthand for changing payout only.
+- `/job setrate <key> <unit-count> <yen>` - shorthand for changing both values.
+- `/job reload` - reload config and rate values.
 
 Rate changes are saved immediately to `config.yml` and survive restarts.
 
@@ -54,4 +56,4 @@ Rate changes are saved immediately to `config.yml` and survive restarts.
 
 - Ageable crops only pay when mature.
 - Melons, pumpkins, torchflowers and pitcher plants pay when harvested and are excluded when manually placed.
-- Mature sweet berry bushes count when harvested by right-click; bone meal use is excluded.
+- Mature sweet berry bushes also count when harvested by right-click; bone meal use is excluded.
