@@ -1,5 +1,6 @@
 beginner:
-  duration-hours: 72
+  # Beginner bonus is based on cumulative play time, not time since first login.
+  playtime-hours: 24
   multiplier: 3
 
 # Each category pays `yen` every `unit-count` successful work actions.
