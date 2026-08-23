@@ -1,5 +1,6 @@
 package com.sagakenichi.job;
 
+import org.bukkit.GameMode;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -39,6 +40,10 @@ final class JobListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreak(BlockBreakEvent event) {
+        GameMode gameMode = event.getPlayer().getGameMode();
+        if (gameMode == GameMode.CREATIVE || gameMode == GameMode.SPECTATOR) {
+            return;
+        }
         Block block = event.getBlock();
         boolean playerPlaced = placedBlocks.consumeIfPlaced(block);
         RewardRule rule = catalog.classify(block, playerPlaced);
