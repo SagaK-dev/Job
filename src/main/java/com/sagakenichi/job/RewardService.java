@@ -1,7 +1,5 @@
 package com.sagakenichi.job;
 
-import net.milkbowl.vault.economy.Economy;
-import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -13,22 +11,20 @@ import java.util.Map;
 
 final class RewardService {
     private final JavaPlugin plugin;
-    private final Economy economy;
+    private final YenService yen;
     private final BeginnerService beginners;
     private final RateTable rateTable;
     private final Map<RewardRule, NamespacedKey> progressKeys = new EnumMap<>(RewardRule.class);
     private boolean payoutMessages;
 
-    RewardService(JavaPlugin plugin, Economy economy, BeginnerService beginners,
+    RewardService(JavaPlugin plugin, YenService yen, BeginnerService beginners,
                   RateTable rateTable, boolean payoutMessages) {
         this.plugin = plugin;
-        this.economy = economy;
+        this.yen = yen;
         this.beginners = beginners;
         this.rateTable = rateTable;
         this.payoutMessages = payoutMessages;
-        for (RewardRule rule : RewardRule.values()) {
-            progressKeys.put(rule, new NamespacedKey(plugin, rule.progressKey()));
-        }
+        for (RewardRule rule : RewardRule.values()) progressKeys.put(rule, new NamespacedKey(plugin, rule.progressKey()));
     }
 
     void setPayoutMessages(boolean payoutMessages) { this.payoutMessages = payoutMessages; }
@@ -44,40 +40,30 @@ final class RewardService {
             pdc.set(key, PersistentDataType.INTEGER, progress);
             return;
         }
-
         int multiplier = beginners.multiplier(player);
-        double yen = (double) completedUnits * rate.yenPerUnit() * multiplier;
-        if (!Double.isFinite(yen) || yen <= 0.0) {
-            plugin.getLogger().warning("Refusing invalid payout for " + player.getName() + ": " + yen);
+        long payout;
+        try {
+            payout = Math.multiplyExact(Math.multiplyExact((long) completedUnits, rate.yenPerUnit()), multiplier);
+        } catch (ArithmeticException ex) {
+            plugin.getLogger().warning("Refusing overflowing yen payout for " + player.getName());
             pdc.set(key, PersistentDataType.INTEGER, progress);
             return;
         }
-
-        EconomyResponse response = economy.depositPlayer(player, yen);
-        if (!response.transactionSuccess()) {
+        if (payout <= 0L || !yen.deposit(player, payout)) {
+            plugin.getLogger().warning("Could not add Job yen for " + player.getName() + ": " + payout);
             pdc.set(key, PersistentDataType.INTEGER, progress);
-            plugin.getLogger().warning("Could not pay " + player.getName() + ": " + response.errorMessage);
             return;
         }
-
         int remainder = progress % rate.unitCount();
-        if (remainder == 0) pdc.remove(key);
-        else pdc.set(key, PersistentDataType.INTEGER, remainder);
-
+        if (remainder == 0) pdc.remove(key); else pdc.set(key, PersistentDataType.INTEGER, remainder);
         if (payoutMessages) {
             String beginner = multiplier > 1 ? " §6[初心者×" + multiplier + "]" : "";
-            player.sendMessage("§a[Job] §f" + rule.displayName() + "報酬: §e"
-                    + formatMoney(yen) + "円" + beginner);
+            player.sendMessage("§a[Job] §f" + rule.displayName() + "報酬: §e" + YenService.format(payout) + beginner);
         }
     }
 
     int progress(Player player, RewardRule rule) {
-        return Math.max(0, player.getPersistentDataContainer().getOrDefault(
-                progressKeys.get(rule), PersistentDataType.INTEGER, 0));
+        return Math.max(0, player.getPersistentDataContainer().getOrDefault(progressKeys.get(rule), PersistentDataType.INTEGER, 0));
     }
     int targetCount(RewardRule rule) { return rateTable.rate(rule).unitCount(); }
-    private static String formatMoney(double value) {
-        long whole = (long) value;
-        return value == whole ? Long.toString(whole) : Double.toString(value);
-    }
 }

@@ -1,59 +1,37 @@
 # Job
 
-Spigot 1.21.1 / Java 21 job-reward plugin using Vault economy.
+Spigot 1.21.1 / Java 21 jobs, sell GUI, and built-in yen economy.
 
-## Requirements
+## Built-in yen
 
-- Spigot 1.21.1
-- Java 21
-- Vault
-- A Vault-compatible economy plugin
+Job 2.0 stores an integer `yen` balance directly in each player's persistent Bukkit data. Vault is no longer required and Job yen is not the same balance as another economy plugin.
 
-## Beginner bonus
+Both automatic work rewards and GUI sales pay into the same Job yen balance. Players under the configured cumulative-playtime beginner threshold receive the configured beginner multiplier on both sources.
 
-Players whose **cumulative server play time is under 24 hours** receive 3x payouts by default.
-The timer advances only while the player is actually logged in; calendar time while offline does not consume the beginner period.
-Spigot's `Statistic.PLAY_ONE_MINUTE` is used as the play-time source; despite its historical name it stores played ticks.
-The play-time threshold and multiplier are configurable in `config.yml`.
+## Sell GUI
 
-## Default rates
+Run `/job` (or `/job shop`) to open the categorized sell menu. Categories are mining/ores, wood, crops, terrain materials, and grass/plants.
 
-| Key | Work | Default rate |
-| --- | --- | --- |
-| `miner-stone` | stone / cobblestone / deepslate and similar | 16 blocks = 1 yen |
-| `miner-low-ore` | coal / copper / iron ores, including deepslate variants | 1 block = 2 yen |
-| `miner-mid-ore` | gold / redstone / lapis ores, including deepslate variants | 1 block = 4 yen |
-| `miner-high-ore` | diamond / emerald ores, including deepslate variants | 1 block = 12 yen |
-| `lumberjack` | logs / wood / stems / hyphae | 8 blocks = 1 yen |
-| `farmer` | mature crop harvests | 8 harvests = 1 yen |
-| `land-clearer` | dirt / sand / gravel / clay and similar | 16 blocks = 1 yen |
-| `weeder` | short grass / fern / tall grass / dead bush | 128 blocks = 1 yen |
+Inside a category:
+
+- Left-click an item: sell one configured unit.
+- Right-click an item: sell every complete unit currently in the player's inventory.
+- Custom-named/lore/PDC items are not consumed; only plain vanilla stacks are sellable.
+- Prices use the same live `RateTable` as work rewards, so `/job rate set ...` updates the GUI immediately.
 
 ## Commands
 
-- `/job rates` - show the live rate table.
-- `/job status` - show beginner bonus status and saved work progress.
-- `/job rate list` - show the live rate table (admin).
-- `/job rate get <key>` - show one rate.
-- `/job rate set <key> <yen>` - change only the payout amount and keep the current unit count.
-- `/job rate set <key> <unit-count> <yen>` - change both the required count and payout.
-- `/job setrate <key> <yen>` - shorthand for changing payout only.
-- `/job setrate <key> <unit-count> <yen>` - shorthand for changing both values.
-- `/job reload` - reload config and rate values.
+- `/job` or `/job shop` - open the sell GUI.
+- `/job balance` - show the built-in yen balance.
+- `/job rates` - show live work/sell rates.
+- `/job status` - show yen, beginner status, and work progress.
+- `/job rate list` - list rates (admin).
+- `/job rate get <key>` - inspect one rate (admin).
+- `/job rate set <key> <yen>` - change payout only (admin).
+- `/job rate set <key> <unit-count> <yen>` - change unit count and payout (admin).
+- `/job setrate ...` - shorthand for rate set (admin).
+- `/job reload` - reload configuration (admin).
 
-Rate changes are saved immediately to `config.yml` and survive restarts.
+## Anti-abuse
 
-## Anti-abuse behavior
-
-- CREATIVE and SPECTATOR do not earn rewards.
-- Player-placed reward blocks do not pay when broken.
-- Player-placed markers survive restarts in chunk PDC.
-- Markers follow piston-moved and falling blocks such as sand/gravel.
-- Explosions clear placement markers for destroyed blocks.
-- Only rewardable placed block types are tracked to keep chunk metadata small.
-
-## Farming details
-
-- Ageable crops only pay when mature.
-- Melons, pumpkins, torchflowers and pitcher plants pay when harvested and are excluded when manually placed.
-- Mature sweet berry bushes also count when harvested by right-click; bone meal use is excluded.
+The existing placed-block tracking remains active for automatic work rewards. GUI sales only consume plain vanilla item stacks and do not accept custom-metadata items.

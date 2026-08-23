@@ -3,8 +3,9 @@ beginner:
   playtime-hours: 24
   multiplier: 3
 
-# Each category pays `yen` every `unit-count` successful work actions.
-# These values can also be changed live with /job rate set.
+# These rates are shared by automatic work rewards and the /job sell GUI.
+# Example: miner-stone unit-count 16 / yen 1 means one completed work unit or
+# one GUI sale unit pays 1 Job yen per 16 matching items/actions.
 rates:
   miner-stone:
     unit-count: 16

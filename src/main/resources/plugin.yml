@@ -1,18 +1,17 @@
 name: Job
-version: 1.2.0
+version: 2.0.0
 main: com.sagakenichi.job.JobPlugin
 api-version: '1.21'
 author: SagaK-dev
-description: Configurable work rewards with a 24-hour cumulative-playtime beginner multiplier for Spigot 1.21.1.
-softdepend: [Vault]
+description: Job rewards, categorized item-selling GUI, and built-in yen currency for Spigot 1.21.1.
 commands:
   job:
-    description: Show and configure job rates and beginner status.
-    usage: /job <rates|status|rate|setrate|reload>
+    description: Open the Job sell GUI or inspect/configure Job economy.
+    usage: /job [shop|balance|rates|status|rate|setrate|reload]
 permissions:
   job.use:
-    description: Allows use of /job rates and /job status.
+    description: Allows the Job GUI, balance, rates and status commands.
     default: true
   job.admin:
-    description: Allows changing rates and reloading Job configuration.
+    description: Allows changing Job rates and reloading configuration.
     default: op
