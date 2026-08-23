@@ -22,6 +22,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 final class JobListener implements Listener {
+
     private final RewardCatalog catalog;
     private final RewardService rewards;
     private final PlacedBlockTracker placedBlocks;
@@ -36,71 +37,100 @@ final class JobListener implements Listener {
         this.beginners = beginners;
         this.beginnerJoinMessage = beginnerJoinMessage;
     }
-    void setBeginnerJoinMessage(boolean enabled) { this.beginnerJoinMessage = enabled; }
+
+    void setBeginnerJoinMessage(boolean enabled) {
+        this.beginnerJoinMessage = enabled;
+    }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
         Block block = event.getBlockPlaced();
-        if (catalog.requiresPlacedTracking(block.getType())) placedBlocks.markPlaced(block);
-        else placedBlocks.consumeIfPlaced(block);
+        if (catalog.requiresPlacedTracking(block.getType())) {
+            placedBlocks.markPlaced(block);
+        } else {
+            placedBlocks.consumeIfPlaced(block);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
         boolean playerPlaced = placedBlocks.consumeIfPlaced(block);
-        if (!earnsRewards(event.getPlayer())) return;
+        if (!earnsRewards(event.getPlayer())) {
+            return;
+        }
         RewardRule rule = catalog.classify(block, playerPlaced);
-        if (rule != null) rewards.record(event.getPlayer(), rule);
+        if (rule != null) {
+            rewards.record(event.getPlayer(), rule);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onRightClickHarvest(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getHand() != EquipmentSlot.HAND
-                || !earnsRewards(event.getPlayer())) return;
+                || !earnsRewards(event.getPlayer())) {
+            return;
+        }
         Block block = event.getClickedBlock();
-        if (block == null) return;
+        if (block == null) {
+            return;
+        }
         ItemStack item = event.getItem();
         Material held = item == null ? Material.AIR : item.getType();
-        if (catalog.isRightClickBerryHarvest(block, held)) rewards.record(event.getPlayer(), RewardRule.FARMER);
+        if (catalog.isRightClickBerryHarvest(block, held)) {
+            rewards.record(event.getPlayer(), RewardRule.FARMER);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPistonExtend(BlockPistonExtendEvent event) {
         placedBlocks.moveMarkedBlocks(event.getBlocks(), event.getDirection());
     }
+
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPistonRetract(BlockPistonRetractEvent event) {
         placedBlocks.moveMarkedBlocks(event.getBlocks(), event.getDirection());
     }
+
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFallingBlockChange(EntityChangeBlockEvent event) {
-        if (!(event.getEntity() instanceof FallingBlock fallingBlock)) return;
+        if (!(event.getEntity() instanceof FallingBlock fallingBlock)) {
+            return;
+        }
         placedBlocks.moveToFallingEntity(event.getBlock(), fallingBlock, event.getTo());
         placedBlocks.restoreFromFallingEntity(fallingBlock, event.getBlock(), event.getTo());
     }
+
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockExplosion(BlockExplodeEvent event) {
-        for (Block block : event.blockList()) placedBlocks.consumeIfPlaced(block);
+        for (Block block : event.blockList()) {
+            placedBlocks.consumeIfPlaced(block);
+        }
     }
+
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityExplosion(EntityExplodeEvent event) {
-        for (Block block : event.blockList()) placedBlocks.consumeIfPlaced(block);
+        for (Block block : event.blockList()) {
+            placedBlocks.consumeIfPlaced(block);
+        }
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (!beginnerJoinMessage || !beginners.isBeginner(player)) return;
-        long remaining = beginners.remainingMillis(player);
-        long hours = (remaining + 3_599_999L) / 3_600_000L;
-        player.sendMessage("§6[Job] 初回ログインから" + beginners.durationHours()
-                + "時間以内のため、仕事の単価が×" + beginners.beginnerMultiplier()
-                + "です。残り約" + hours + "時間。");
+        if (!beginnerJoinMessage || !beginners.isBeginner(player)) {
+            return;
+        }
+        long remainingTicks = beginners.remainingTicks(player);
+        long remainingHours = (remainingTicks + BeginnerService.TICKS_PER_HOUR - 1L)
+                / BeginnerService.TICKS_PER_HOUR;
+        player.sendMessage("§6[Job] 累計プレイ時間が" + beginners.playtimeHours()
+                + "時間未満のため、仕事の単価が×" + beginners.beginnerMultiplier()
+                + "です。残りプレイ時間は約" + remainingHours + "時間です。");
     }
 
     private static boolean earnsRewards(Player player) {
-        GameMode mode = player.getGameMode();
-        return mode != GameMode.CREATIVE && mode != GameMode.SPECTATOR;
+        GameMode gameMode = player.getGameMode();
+        return gameMode != GameMode.CREATIVE && gameMode != GameMode.SPECTATOR;
     }
 }
