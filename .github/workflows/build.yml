@@ -28,13 +28,17 @@ jobs:
           JAR="$(find target -maxdepth 1 -type f -name 'Job-*-Spigot-1.21.1.jar' | head -n 1)"
           test -n "$JAR"
           unzip -t "$JAR"
-          unzip -p "$JAR" plugin.yml | grep -q '^version: 2.0.1$'
+          unzip -p "$JAR" plugin.yml | grep -q '^version: 2.0.2$'
+          unzip -p "$JAR" plugin.yml | grep -q '^softdepend: \[Vault\]$'
+          unzip -p "$JAR" plugin.yml | grep -q '^loadbefore: \[BdayoLand\]$'
           if unzip -p "$JAR" plugin.yml | grep -q '^[[:space:]]*usage:'; then
             echo 'plugin.yml still contains a fixed usage hint'
             exit 1
           fi
           unzip -p "$JAR" plugin.yml | grep -q '^  jobmenu:$'
-          if unzip -l "$JAR" | grep -Eq ' org/bukkit/| org/junit/'; then
+          jar tf "$JAR" | grep -q 'com/sagakenichi/job/JobVaultEconomy.class$'
+          jar tf "$JAR" | grep -q 'com/sagakenichi/job/YenAmount.class$'
+          if unzip -l "$JAR" | grep -Eq ' org/bukkit/| org/junit/| net/milkbowl/vault/'; then
             echo 'Provided/test dependencies were packaged into the plugin jar'
             exit 1
           fi
