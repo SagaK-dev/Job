@@ -18,9 +18,11 @@ final class PluginDescriptorTest {
     }
 
     @Test
-    void pluginDescriptorRegistersBothJobCommands() throws IOException {
+    void pluginDescriptorRegistersJobCommandsAndVaultBridgeOrdering() throws IOException {
         String descriptor = descriptor();
-        assertTrue(descriptor.contains("version: 2.0.1"));
+        assertTrue(descriptor.contains("version: 2.0.2"));
+        assertTrue(descriptor.contains("softdepend: [Vault]"));
+        assertTrue(descriptor.contains("loadbefore: [BdayoLand]"));
         assertTrue(descriptor.contains("  job:\n"));
         assertTrue(descriptor.contains("  jobmenu:\n"));
         assertTrue(descriptor.contains("aliases: [jmenu]"));
