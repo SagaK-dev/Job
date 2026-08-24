@@ -27,19 +27,22 @@ jobs:
           set -euo pipefail
           JAR="$(find target -maxdepth 1 -type f -name 'Job-*-Spigot-1.21.1.jar' | head -n 1)"
           test -n "$JAR"
+          VERSION="$(basename "$JAR" | sed -E 's/^Job-(.+)-Spigot-1\.21\.1\.jar$/\1/')"
+          test -n "$VERSION"
           unzip -t "$JAR"
-          unzip -p "$JAR" plugin.yml | grep -q '^version: 2.0.1$'
+          unzip -p "$JAR" plugin.yml | grep -Fqx "version: $VERSION"
+          unzip -p "$JAR" plugin.yml | grep -Fqx 'depend: [Vault]'
           if unzip -p "$JAR" plugin.yml | grep -q '^[[:space:]]*usage:'; then
             echo 'plugin.yml still contains a fixed usage hint'
             exit 1
           fi
           unzip -p "$JAR" plugin.yml | grep -q '^  jobmenu:$'
-          if unzip -l "$JAR" | grep -Eq ' org/bukkit/| org/junit/'; then
+          if unzip -l "$JAR" | grep -Eq ' org/bukkit/| org/junit/| net/milkbowl/vault/'; then
             echo 'Provided/test dependencies were packaged into the plugin jar'
             exit 1
           fi
           javap -verbose -classpath "$JAR" com.sagakenichi.job.JobPlugin | grep -q 'major version: 65'
-          echo "Verified $JAR"
+          echo "Verified $JAR (version $VERSION, Vault provided dependency)"
 
       - uses: actions/upload-artifact@v4
         with:
