@@ -18,9 +18,10 @@ final class PluginDescriptorTest {
     }
 
     @Test
-    void pluginDescriptorRegistersBothJobCommands() throws IOException {
+    void pluginDescriptorRegistersBothJobCommandsAndRequiresVault() throws IOException {
         String descriptor = descriptor();
-        assertTrue(descriptor.contains("version: 2.0.1"));
+        assertTrue(descriptor.contains("version: 2.1.0"));
+        assertTrue(descriptor.contains("depend: [Vault]"));
         assertTrue(descriptor.contains("  job:\n"));
         assertTrue(descriptor.contains("  jobmenu:\n"));
         assertTrue(descriptor.contains("aliases: [jmenu]"));
