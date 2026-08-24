@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Inventory GUI for selling job materials for Job's built-in yen currency. */
+/** Inventory GUI for selling job materials into the shared Vault-backed yen balance. */
 final class JobSellMenu implements Listener {
     private static final int MAIN_SIZE = 27;
     private static final int CATEGORY_SIZE = 54;
@@ -121,7 +121,7 @@ final class JobSellMenu implements Listener {
             return;
         }
         if (!yen.canDeposit(player, payout)) {
-            player.sendMessage(ChatColor.RED + "円の残高が上限に達するため売却できません。");
+            player.sendMessage(ChatColor.RED + "Vault残高へ安全に入金できないため売却できません。");
             return;
         }
         int removeAmount = Math.multiplyExact(units, rate.unitCount());
@@ -131,7 +131,7 @@ final class JobSellMenu implements Listener {
         }
         if (!yen.deposit(player, payout)) {
             player.getInventory().addItem(new ItemStack(entry.material(), removeAmount));
-            player.sendMessage(ChatColor.RED + "売却代金を保存できなかったため取引を取り消しました。");
+            player.sendMessage(ChatColor.RED + "Vaultへの入金に失敗したため取引を取り消しました。");
             return;
         }
         String bonus = multiplier > 1 ? ChatColor.GOLD + " [初心者×" + multiplier + "]" : "";
@@ -167,7 +167,8 @@ final class JobSellMenu implements Listener {
     }
 
     private ItemStack balanceItem(Player player) {
-        return named(Material.GOLD_INGOT, ChatColor.GOLD + "所持金: " + YenService.format(yen.balance(player)), List.of(ChatColor.GRAY + "Job独自通貨。Vaultとは別の残高です。"));
+        return named(Material.GOLD_INGOT, ChatColor.GOLD + "所持金: " + YenService.format(yen.balance(player)),
+                List.of(ChatColor.GRAY + "Vault共通残高（" + yen.providerName() + "）"));
     }
 
     private static ItemStack named(Material material, String name, List<String> lore) {
