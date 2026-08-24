@@ -21,7 +21,16 @@ public final class JobPlugin extends JavaPlugin {
                 getConfig().getLong("beginner.playtime-hours", DEFAULT_BEGINNER_PLAYTIME_HOURS),
                 getConfig().getInt("beginner.multiplier", 3));
         rateTable = new RateTable(this);
-        yen = new YenService(this);
+
+        try {
+            yen = new YenService(this);
+        } catch (IllegalStateException ex) {
+            getLogger().severe(ex.getMessage());
+            getLogger().severe("Job requires Vault plus an active Vault Economy provider. Job will be disabled.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
         rewards = new RewardService(this, yen, beginners, rateTable,
                 getConfig().getBoolean("messages.payout", true));
         placedBlocks = new PlacedBlockTracker(this,
@@ -37,7 +46,8 @@ public final class JobPlugin extends JavaPlugin {
         registerCommand("job", executor);
         registerCommand("jobmenu", executor);
 
-        getLogger().info("Job 2.0.1 enabled. /job and /jobmenu open the sell GUI; Job yen is stored internally without Vault.");
+        getLogger().info("Job 2.1.0 enabled. Vault is the primary economy bridge; active provider: "
+                + yen.providerName() + ". /job and /jobmenu keep the existing Job GUI and rates.");
     }
 
     private void registerCommand(String name, JobCommand executor) {
